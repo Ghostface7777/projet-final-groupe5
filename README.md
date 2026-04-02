@@ -9,102 +9,151 @@ Ce projet contient un script SQL Oracle complet pour simuler un mini système ba
 ## Fonctionnalités incluses
 
 - Suppression/recréation des tables principales :
-  - `client`
-  - `compte`
-  - `transaction`
-  - `utilisateur`
-  - `historique`
-- Création des séquences Oracle associées.
-- Création d’utilisateurs Oracle et rôles (`data_analyst`, `data_integration`).
-- Génération de données aléatoires avec `DBMS_RANDOM`.
-- Import de données via table externe Oracle (`client_ext`) depuis un CSV.
-- Vues analytiques :
-  - `vue_transactions`
-  - `vue_stats`
-- Vue matérialisée : `mv_solde`.
-- Triggers métier :
-  - Vérification du solde avant retrait.
-  - Mise à jour automatique du solde du compte.
-  - Journalisation des opérations dans `historique`.
-- Exemples de requêtes `MERGE`.
-- Notes/commentaires pour sauvegarde Oracle à chaud et à froid.
+   # Projet Final Banque Oracle
 
-## Prérequis
+  Ce projet présente un mini système bancaire développé en SQL Oracle. Il regroupe la création du schéma, la gestion des comptes et transactions, l’import de données, des vues d’analyse, des triggers métier et des exemples de sauvegarde.
 
-- Oracle Database (XE/Standard/Enterprise) avec un schéma disposant des droits nécessaires.
-- Un outil d’exécution SQL Oracle :
-  - SQL*Plus, ou
-  - Oracle SQL Developer.
-- (Optionnel) Dossier d’import CSV : `C:\oraclep\data` avec un fichier `data.csv`.
+  ## Fichier principal
 
-## Attention avant exécution
+  - [PROJET_ORACLE_FINAL.sql](PROJET_ORACLE_FINAL.sql) : script complet du projet.
 
-Le script contient des opérations destructives et administratives :
+  ## Objectifs du projet
 
-- `DROP TABLE ...`
-- `DROP SEQUENCE ...`
-- `DROP USER ... CASCADE`
-- `DROP ROLE ...`
-- `GRANT ...`
+  - Créer les tables d’une base bancaire.
+  - Gérer les clients, comptes, transactions, utilisateurs et historique.
+  - Automatiser certaines règles métier avec des triggers.
+  - Fournir des vues pour l’analyse des opérations.
+  - Illustrer l’import de données externes et les opérations de fusion avec `MERGE`.
 
-Exécuter ce script uniquement dans un environnement de test/projet (pas en production).
+  ## Fonctionnalités
 
-## Exécution du script
+  ### 1. Création du schéma
 
-### Option 1 — SQL*Plus
+  - Suppression puis recréation des tables :
+    - `client`
+    - `compte`
+    - `transaction`
+    - `utilisateur`
+    - `historique`
+  - Création des séquences Oracle associées.
 
-```sql
-sqlplus utilisateur/motdepasse@XEPDB1
-@PROJET_ORACLE_FINAL.sql
-```
+  ### 2. Sécurité et droits
 
-### Option 2 — SQL Developer
+  - Création d’utilisateurs Oracle :
+    - `Tahirou`
+    - `Marlyatou`
+    - `Rabi`
+    - `Foromo`
+  - Création des rôles :
+    - `data_analyst`
+    - `data_integration`
 
-1. Ouvrir le fichier `PROJET_ORACLE_FINAL.sql`.
-2. Se connecter à la base cible.
-3. Exécuter le script en mode *Run Script* (F5).
+  ### 3. Données de test
 
-## Import CSV (table externe)
+  - Génération de données aléatoires avec `DBMS_RANDOM`.
+  - Insertion automatique de clients, comptes, transactions, utilisateurs et historique.
 
-Le script crée :
+  ### 4. Import de données
 
-```sql
-CREATE OR REPLACE DIRECTORY data_dir AS 'C:\oraclep\data';
-```
+  - Création d’une table externe `client_ext`.
+  - Lecture d’un fichier CSV via un répertoire Oracle.
+  - Insertion des données importées dans la table `client`.
 
-Puis une table externe basée sur `data.csv` avec séparateur `;` et saut de l’en-tête (`SKIP 1`).
+  ### 5. Analyse et reporting
 
-Format attendu minimal du fichier CSV :
+  - Vue `vue_transactions` pour afficher les transactions avec les informations client.
+  - Vue `vue_stats` pour obtenir le nombre et le total des transactions par type.
+  - Vue matérialisée `mv_solde` pour le calcul du solde par compte.
 
-```text
-id_client;nom;prenom;email;telephone
-1;Diallo;Tahir;tahir@gmail.com;620000000
-```
+  ### 6. Automatisation métier
 
-## Vérifications rapides après exécution
+  - Trigger de vérification du solde avant retrait.
+  - Trigger de mise à jour automatique du solde du compte.
+  - Trigger d’historisation des opérations.
 
-Vous pouvez contrôler les données avec :
+  ### 7. Fusion de données
 
-```sql
-SELECT * FROM client;
-SELECT * FROM compte;
-SELECT * FROM transaction;
-SELECT * FROM utilisateur;
-SELECT * FROM historique;
-SELECT * FROM vue_transactions;
-SELECT * FROM vue_stats;
-SELECT * FROM mv_solde;
-```
+  - Exemples de requêtes `MERGE` pour synchroniser des données entre tables.
 
-## Sauvegarde et restauration
+  ### 8. Sauvegarde
 
-Le script contient des blocs commentés expliquant :
+  - Notes sur la sauvegarde à chaud avec Data Pump.
+  - Notes sur la sauvegarde à froid avec arrêt de la base et copie des fichiers Oracle.
 
-- Sauvegarde à chaud via `expdp` (Data Pump).
-- Sauvegarde à froid via arrêt de la base, copie des fichiers `.dbf/.ctl/.log`, puis redémarrage.
+  ## Prérequis
 
-Adapter les chemins, SID, utilisateurs et mots de passe à votre installation Oracle.
+  - Oracle Database installé et accessible.
+  - SQL*Plus ou Oracle SQL Developer.
+  - Droits suffisants pour créer des tables, séquences, vues, triggers, rôles et utilisateurs.
+  - Pour l’import CSV : un dossier local accessible par Oracle, par exemple `C:\oraclep\data`.
 
-## Auteur
+  ## Attention
 
-Projet académique — Banque (Oracle SQL).
+  Le script contient des commandes destructives et administratives :
+
+  - suppression de tables,
+  - suppression de séquences,
+  - suppression d’utilisateurs,
+  - suppression de rôles,
+  - attribution de privilèges.
+
+  Il doit être exécuté uniquement dans un environnement de test ou de projet.
+
+  ## Exécution
+
+  ### Avec SQL*Plus
+
+  ```sql
+  sqlplus utilisateur/motdepasse@XEPDB1
+  @PROJET_ORACLE_FINAL.sql
+  ```
+
+  ### Avec SQL Developer
+
+  1. Ouvrir le fichier [PROJET_ORACLE_FINAL.sql](PROJET_ORACLE_FINAL.sql).
+  2. Se connecter à la base Oracle.
+  3. Lancer le script en mode exécution complète.
+
+  ## Import CSV
+
+  Le script utilise un répertoire Oracle nommé `data_dir` pointant vers :
+
+  ```sql
+  C:\oraclep\data
+  ```
+
+  Le fichier attendu est `data.csv` avec un séparateur `;` et une ligne d’en-tête.
+
+  Exemple :
+
+  ```text
+  id_client;nom;prenom;email;telephone
+  1;Diallo;Tahir;tahir@gmail.com;620000000
+  ```
+
+  ## Vérifications après exécution
+
+  ```sql
+  SELECT * FROM client;
+  SELECT * FROM compte;
+  SELECT * FROM transaction;
+  SELECT * FROM utilisateur;
+  SELECT * FROM historique;
+  SELECT * FROM vue_transactions;
+  SELECT * FROM vue_stats;
+  SELECT * FROM mv_solde;
+  ```
+
+  ## Résultat attendu
+
+  Après exécution, la base doit contenir :
+
+  - des clients générés ou importés,
+  - des comptes liés aux clients,
+  - des transactions de dépôt et de retrait,
+  - un historique des opérations,
+  - des vues prêtes pour l’analyse.
+
+  ## Auteur
+
+  Projet académique de gestion bancaire avec Oracle SQL.
