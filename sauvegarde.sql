@@ -1,97 +1,44 @@
--- LES SAUVEGARDES
---a. Sauvegarde a chaud "En tant que SYSTEME avec le DOMAINE XEPDB1"
---CREATE OR REPLACE DIRECTORY backup_dir AS 'C:\BackupOracle';
---GRANT READ, WRITE ON DIRECTORY backup_dir TO projetfinal;
---Apres créer un ficier .bat ayant pour contenu ci-dessous
+-- LES SAUVEGARDES ET LA RESTAURATION
 
-@echo off
-title Script de Sauvegarde Oracle - Projet IST Mamou
-echo ============================================================
-echo   SYSTEME DE SAUVEGARDE A CHAUD (DATA PUMP) - PROJET ORACLE
-echo ============================================================
+--A. SAUVEGARDE A CHAUD
+-- METHODE A SUIVRE (Dans cmd, tape ces commandes)
+-- Il faut mettre la base en mode ARCHIVELOG pour permettre une sauvegarde en ligne.
+1. sqlplus / as sysdba
+2. SHUTDOWN IMMEDIATE;
+3. STARTUP MOUNT;
+4. ALTER DATABASE ARCHIVELOG;
+5. ALTER DATABASE OPEN;
+-- Vérification du mode d’archivage.
+6. ARCHIVE LOG LIST;
+-- On se connecte à RMAN pour lancer la sauvegarde en ligne.
+7. rman target /
+-- Sauvegarde complète de la base et des journaux.
+8. BACKUP DATABASE PLUS ARCHIVELOG;
+--+++++++++++++  FIN DE LA SAUVEGARDE A CHAUD +++++++++++++++++++
 
-:: 1. Définition des variables d'environnement (si nécessaire)
-:: set ORACLE_SID=xe
+--A. SAUVEGARDE A FROID
+-- METHODE A SUIVRE (Dans cmd, tape ces commandes)
+--Il faut arreter la base de donnees
+1. sqlplus / as sysdba
+2. SHUTDOWN IMMEDIATE;
+--La base étant fermée, on copie directement les fichiers vers un dossier de sauvegarde.
+3. EXIT;
+4. copy C:\ORACLE_WILL\oradata\XE\* C:\backup\
+--+++++++++++++  FIN DE LA SAUVEGARDE A FROID +++++++++++++++++++
 
-:: 2. Création du dossier physique s'il n'existe pas encore
-if not exist C:\BackupOracle mkdir C:\BackupOracle
+--C. RESTAURATION
+-- On arrête la base avant toute restauration.
+1. sqlplus / as sysdba
+2. SHUTDOWN IMMEDIATE;
+-- On démarre en mode MOUNT pour permettre la restauration.
+3. STARTUP MOUNT;
+-- On lance RMAN pour restaurer les fichiers.
+4. rman target /
+5. RESTORE DATABASE;
+-- On applique les journaux pour rendre la base cohérente.
+6. RECOVER DATABASE;
+-- On ouvre la base pour l’utiliser.
+7. ALTER DATABASE OPEN;
+--+++++++++++++  FIN DE LA RESTAURATION  +++++++++++++++++++  
 
-echo.
-echo Exportation du schema projetfinal en cours...
-echo.
-
-:: 3. Commande EXPORT DATA PUMP (expdp)
-:: On utilise l'utilisateur projetfinal pour sauvegarder ses propres tables
-expdp WILL_ADMIN/will2026@localhost/XEPDB1 ^
-DIRECTORY=backup_dir ^
-DUMPFILE=sauvegarde_ist_%date:~-4%%date:~3,2%%date:~0,2%.dmp ^
-LOGFILE=sauvegarde_log.log ^
-SCHEMAS=projetfinal
-
-echo.
-echo ============================================================
-echo Sauvegarde terminee ! Verifiez le dossier C:\BackupOracle
-echo ============================================================
-pause
-
---b. Sauvegarde à froid
--- Créer les fichier stopdb_temp.sql contenant SHUTDOWN IMMEDIATE; EXIT; ET startdb_temp.sql contenant STARTUP; EXIT;
--- ET backup_cold_complete.bat le tout dans le repertoire OracleBackup dans le disque local
---Apres
-
-
-@echo off
-REM ======================================================
-REM SAUVEGARDE A FROID COMPLETE ORACLE
-REM ======================================================
-
-REM ======== CONFIGURATION ========
-set ORACLE_SID=XE
-set ORACLE_HOME=C:\ORACLE_WILL\dbhomeXE
-set PATH=%ORACLE_HOME%\bin;%PATH%
-set ORADATA_DIR=C:\ORACLE_WILL\oradata\XE
-set BACKUP_DIR=C:\backup
-
-echo ======================================================
-echo VERIFICATION DU DOSSIER DE SAUVEGARDE
-echo ======================================================
-if not exist %BACKUP_DIR% (
-    mkdir %BACKUP_DIR%
-    echo Dossier %BACKUP_DIR% créé.
-) else (
-    echo Dossier %BACKUP_DIR% existe deja.
-)
-
-REM ======== ARRET DE LA BASE ========
-echo ======================================================
-echo ARRET DE LA BASE DE DONNEES
-echo ======================================================
-sqlplus / as sysdba @stopdb_temp.sql
-
-REM ======== COPIE DES FICHIERS ========
-echo ======================================================
-echo COPIE DES DATAFILES
-echo ======================================================
-copy "%ORADATA_DIR%\*.dbf" "%BACKUP_DIR%\" /Y
-
-echo ======================================================
-echo COPIE DES CONTROLFILES
-echo ======================================================
-copy "%ORADATA_DIR%\control*.ctl" "%BACKUP_DIR%\" /Y
-
-echo ======================================================
-echo COPIE DES REDO LOGS
-echo ======================================================
-copy "%ORADATA_DIR%\redo*.log" "%BACKUP_DIR%\" /Y
-
-echo ======================================================
-echo SAUVEGARDE TERMINEE
-echo ======================================================
-
-REM ======== DEMARRAGE DE LA BASE ========
-echo ======================================================
-echo DEMARRAGE DE LA BASE DE DONNEES
-echo ======================================================
-sqlplus / as sysdba @startdb_temp.sql
-
-pause
+--========================INGE_WILL===========================
